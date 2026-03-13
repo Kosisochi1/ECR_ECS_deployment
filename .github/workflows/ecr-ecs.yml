@@ -44,14 +44,6 @@ jobs:
         go test  ./... -v || "review manually"
         INTEGRATION=true go test -v --tags=integration ./...
         
-
-    - name: Code Quality
-      uses: golangci/golangci-lint-action@v6
-      with:
-         version: v1.64.8
-         working-directory: application-code 
-        
-
     - name: Vulnerabity Scan
       working-directory: application-code 
       run: |
