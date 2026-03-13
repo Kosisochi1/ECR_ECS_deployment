@@ -46,9 +46,10 @@ jobs:
 
 
     - name: Code Quality
-      uses: dmux/go-quality-gate-action@v1.0.0
+      uses: golangci/golangci-lint-action@v6
       with:
          working-directory: application-code 
+         version : v1.64.8
 
     - name: Vulnerabity Scan
       working-directory: application-code 
