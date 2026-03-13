@@ -41,7 +41,7 @@ jobs:
     - name: Test
       working-directory: application-code
       run: |
-        go test -v ./... -r || "review manually"
+        go test  ./... -v || "review manually"
         INTEGRATION=true go test -v --tags=integration ./...
 
 
