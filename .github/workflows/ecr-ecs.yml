@@ -43,6 +43,9 @@ jobs:
       run: |
         go test  ./... -v || "review manually"
         INTEGRATION=true go test -v --tags=integration ./...
+        
+    - name: Clean golangci cache
+      run: rm -rf ~/.cache/golangci-lint
 
 
     - name: Code Quality
