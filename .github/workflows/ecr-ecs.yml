@@ -44,15 +44,13 @@ jobs:
         go test  ./... -v || "review manually"
         INTEGRATION=true go test -v --tags=integration ./...
         
-    - name: Clean golangci cache
-      run: rm -rf ~/.cache/golangci-lint
-
 
     - name: Code Quality
       uses: golangci/golangci-lint-action@v6.0.1
       with:
+         version: v1.65.0
          working-directory: application-code 
-         version : latest
+        
 
     - name: Vulnerabity Scan
       working-directory: application-code 
