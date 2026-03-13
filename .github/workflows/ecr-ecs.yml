@@ -30,7 +30,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.22'
+        go-version: "1.22"
         cache: true
         cache-dependency-path: application-code/go.sum
 
@@ -48,7 +48,7 @@ jobs:
     - name: Code Quality
       uses: golangci/golangci-lint-action@v6
       with:
-         version: v1.64.9
+         version: v1.64.8
          working-directory: application-code 
         
 
