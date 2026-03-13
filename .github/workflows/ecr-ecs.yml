@@ -49,7 +49,7 @@ jobs:
       uses: golangci/golangci-lint-action@v6
       with:
          working-directory: application-code 
-         version : v1.65.0
+         version : latest
 
     - name: Vulnerabity Scan
       working-directory: application-code 
