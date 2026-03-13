@@ -46,7 +46,7 @@ jobs:
 
 
     - name: Code Quality
-      uses: golangci/golangci-lint-action@v6
+      uses: golangci/golangci-lint-action@v6.0.1
       with:
          working-directory: application-code 
          version : latest
