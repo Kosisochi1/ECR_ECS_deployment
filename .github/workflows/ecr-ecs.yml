@@ -80,7 +80,7 @@ jobs:
         
       - name: Tag Image
         run: |
-          docker tag demo-app ${{secrets.ECR_REPO}}:latest
+          docker tag demo-app:latest ${{secrets.ECR_REPO}}:latest
 
       - name: Push Image 
         run:  docker push ${{ secrets.ECR_REPO}}:latest
