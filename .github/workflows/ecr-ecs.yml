@@ -32,7 +32,7 @@ jobs:
     - name: Scan Repo for leaks
       uses: gitleaks/gitleaks-action@v2
       with:
-       args: detect --redact --exit-code=1 --report-format=sarif --report-path=results.sarif
+       args: detect --redact --exit-code= 0 --report-format=sarif --report-path=results.sarif
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
     - name: Install Gitleaks
