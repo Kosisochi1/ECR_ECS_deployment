@@ -1,0 +1,127 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs: 
+      test_workflow:
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+        
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_workflow == 'true'
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Scan Repo for leaks
+      uses: gitleaks/gitleaks-action@v2
+      with:
+       args: detect --redact --exit-code=1 --report-format=sarif --report-path=results.sarif
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+    - name: Install Gitleaks
+      run: |
+       curl -sSL https://github.com/zricethezav/gitleaks/releases/download/v8.16.1/gitleaks_8.16.1_linux_x64.tar.gz -o gitleaks.tar.gz
+       tar -xzf gitleaks.tar.gz
+       chmod +x gitleaks
+       sudo mv gitleaks /usr/local/bin/
+
+    - name: Scan Repo for leaks
+      run: |
+       gitleaks detect \
+       --redact \
+       --report-format sarif \
+       --report-path results.sarif \
+       --exit-code 1
+
+    - name: Upload SARIF to Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+       sarif_file: results.sarif
+
+
+    # - name: Scan Repo for leaks
+    #   uses: gitleaks/gitleaks-action@v2
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.22"
+        cache: true
+        cache-dependency-path: application-code/go.sum
+
+    - name: Download Dependency
+      working-directory: application-code
+      run: go mod download
+
+    - name: Test
+      working-directory: application-code
+      run: |
+        go test  ./... -v || "review manually"
+        INTEGRATION=true go test -v --tags=integration ./...
+        
+    - name: Vulnerabity Scan
+      working-directory: application-code 
+      run: |
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+        govulncheck./... || echo "Vulnerability detected"
+
+  build-and-deploy:
+    name: Build Image
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22
+
+
+      - name: Configure AWS 
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          aws-region: eu-west-1
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker Image
+        run: docker build -t demo-app .
+        
+      - name: Tag Image
+        run: |
+          docker tag demo-app:latest ${{secrets.ECR_REPO}}:latest
+
+      - name: Push Image 
+        run:  docker push ${{ secrets.ECR_REPO}}:latest
+          
+    
+     
+    
+
+    
+    
