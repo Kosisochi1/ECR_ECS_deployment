@@ -26,12 +26,26 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_workflow == 'true'
     steps:
     - uses: actions/checkout@v4
-
+      with:
+        fetch-depth: 0
 
     - name: Scan Repo for leaks
-      uses: gitleaks/gitleaks-action@v2.3.4
+      uses: gitleaks/gitleaks-action@v2
+      with:
+       args: detect --redact --exit-code=1 --report-format=sarif --report-path=results.sarif
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+
+    - name: Upload SARIF to Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: results.sarif
+
+
+    # - name: Scan Repo for leaks
+    #   uses: gitleaks/gitleaks-action@v2
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Go
       uses: actions/setup-go@v5
