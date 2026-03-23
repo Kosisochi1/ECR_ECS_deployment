@@ -36,20 +36,20 @@ jobs:
       env:
         # GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
         GITLEAKS_COMMAND: detect --no-git --redact -v
-    - name: Install Gitleaks
-      run: |
-       curl -sSL https://github.com/zricethezav/gitleaks/releases/download/v8.16.1/gitleaks_8.16.1_linux_x64.tar.gz -o gitleaks.tar.gz
-       tar -xzf gitleaks.tar.gz
-       chmod +x gitleaks
-       sudo mv gitleaks /usr/local/bin/
+    # - name: Install Gitleaks
+    #   run: |
+    #    curl -sSL https://github.com/zricethezav/gitleaks/releases/download/v8.16.1/gitleaks_8.16.1_linux_x64.tar.gz -o gitleaks.tar.gz
+    #    tar -xzf gitleaks.tar.gz
+    #    chmod +x gitleaks
+    #    sudo mv gitleaks /usr/local/bin/
 
-    - name: Scan Repo for leaks
-      run: |
-       gitleaks detect \
-       --redact \
-       --report-format sarif \
-       --report-path results.sarif \
-       --exit-code 1
+    # - name: Scan Repo for leaks
+    #   run: |
+    #    gitleaks detect \
+    #    --redact \
+    #    --report-format sarif \
+    #    --report-path results.sarif \
+    #    --exit-code 1
 
     - name: Upload SARIF to Security tab
       uses: github/codeql-action/upload-sarif@v3
