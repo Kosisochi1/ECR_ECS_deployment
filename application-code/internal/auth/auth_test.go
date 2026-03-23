@@ -11,7 +11,7 @@ import (
 // TestTokenService provides unit tests for the JWT token service.
 func TestTokenService(t *testing.T) {
 	// Setup: Initialize the service with a secret key.
-	secretKey := "test-secret-that-is-long-enough-for-hs256"
+	secretKey := os.Getenv("SECRET_KEY")
 	expirationHours := 1
 	tokenSvc := NewTokenService(secretKey, expirationHours)
 	userID := "test-user-123"
