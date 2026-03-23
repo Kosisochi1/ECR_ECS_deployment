@@ -31,6 +31,8 @@ jobs:
 
     - name: Scan Repo for leaks
       uses: gitleaks/gitleaks-action@v2
+      with:
+        disable_cache: true
       env:
         # GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
         GITLEAKS_COMMAND: detect --no-git --redact -v
