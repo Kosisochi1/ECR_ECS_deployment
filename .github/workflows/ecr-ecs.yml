@@ -56,6 +56,10 @@ jobs:
       working-directory: application-code
       run: |
         go test  ./... -v || "review manually"
+
+    - name: Test
+      working-directory: application-code
+      run: |
         INTEGRATION=true go test -v --tags=integration ./...
         
     - name: Vulnerabity Scan
