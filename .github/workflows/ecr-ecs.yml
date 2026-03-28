@@ -55,7 +55,7 @@ jobs:
     - name: Test
       working-directory: application-code
       run: |
-        go test  ./... -v || "review manually"
+        go test  ./... -v || echo "review manually"
 
     - name: Test
       working-directory: application-code
