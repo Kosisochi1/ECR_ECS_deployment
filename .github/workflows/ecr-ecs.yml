@@ -58,7 +58,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     - name: Run Trivy vulnerability scanner in fs mode
-      uses: aquasecurity/trivy-action@44c0c1c6c0f6a9cdb0c6f8c9b6c4c8e6d6f2c123
+      uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
         scan-ref: '.'
