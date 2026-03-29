@@ -64,12 +64,12 @@ jobs:
         scan-ref: '.'
         trivy-config: trivy.yaml
 
-    - name: Test
+    - name:    Unit Test
       working-directory: application-code
       run: |
         go test  ./... -v || echo "review manually"
 
-    - name: Test
+    - name: Integration Test
       working-directory: application-code
       run: |
         INTEGRATION=true go test -v --tags=integration ./...
