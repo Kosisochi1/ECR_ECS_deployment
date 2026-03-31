@@ -141,5 +141,14 @@ jobs:
       - name: Download Task Definition
         run: aws s3 cp ${{ secrets.TASK_DEF}} . 
 
+
+      - name: Render new ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+           task-definition: ${{secrets.TASK_DEF}}
+           container-name: much_to_do
+           image: ${{ secrets.ECR_REPO }}:latest
+
     
     
