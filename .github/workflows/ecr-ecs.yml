@@ -114,7 +114,7 @@ jobs:
           docker tag demo-app:latest ${{secrets.ECR_REPO}}:latest
 
       - name: Push Image 
-        run:  docker push ${{ secrets.ECR_REPO}}:latest
+        run:  docker push ${{ secrets.ECR_REPO }}:latest
           
     
      
