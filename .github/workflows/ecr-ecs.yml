@@ -139,7 +139,7 @@ jobs:
 
 
       - name: Download Task Definition
-        run: aws s3 cp s3://task-definition-store-bucket/task-definition.json . 
+        run: aws s3 cp s3://task-definition-store-bucket/task_def . 
 
 
       - name: Render new ECS task definition
