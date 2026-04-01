@@ -155,6 +155,9 @@ jobs:
            task-definition: task_def.json
            container-name: much_todo_demo
            image: ${{ secrets.ECR_REPO }}:latest
+      - name: Debug rendered task definition
+        run: |
+          cat ${{ steps.task_def.outputs.task-definition }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
