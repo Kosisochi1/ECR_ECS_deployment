@@ -153,7 +153,7 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
            task-definition: task_def.json
-           container-name: much_to_do
+           container-name: much_to_demo
            image: ${{ secrets.ECR_REPO }}:latest
 
     
