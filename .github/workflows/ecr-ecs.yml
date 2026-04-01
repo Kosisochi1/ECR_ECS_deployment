@@ -143,10 +143,10 @@ jobs:
 
 
       - name: Render new ECS task definition
-        id: task-def
+        id: task_def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-           task-definition: task-definition.json
+           task-definition: task_def
            container-name: much_to_do
            image: ${{ secrets.ECR_REPO }}:latest
 
