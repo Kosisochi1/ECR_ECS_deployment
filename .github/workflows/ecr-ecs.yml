@@ -156,5 +156,13 @@ jobs:
            container-name: much_todo_demo
            image: ${{ secrets.ECR_REPO }}:latest
 
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task_def.outputs.task-definition }}   # ✅ IMPORTANT
+          service: much_todo_demo-service
+          cluster: much_todo_demo-cluster
+          wait-for-service-stability: true
+
     
     
