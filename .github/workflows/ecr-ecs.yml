@@ -85,9 +85,9 @@ jobs:
          STATUS="${{ job.status }}"
     
          if [ "$STATUS" == "success" ]; then
-            MESSAGE="✅ Build succeeded"
+            MESSAGE="✅ Pre-build Check Completed"
          else
-            MESSAGE="❌ Build failed"
+            MESSAGE="❌ Pre-build Check Failed"
          fi
 
          curl -X POST -H 'Content-type: application/json' \
@@ -129,6 +129,21 @@ jobs:
 
       - name: Push Image 
         run:  docker push ${{ secrets.ECR_REPO }}:latest
+        
+      - name: Notify Slack
+        if: always()
+        run: |
+         STATUS="${{ job.status }}"
+    
+         if [ "$STATUS" == "success" ]; then
+            MESSAGE="✅ Build Process Completed"
+         else
+            MESSAGE="❌ Build Process Failed"
+         fi
+
+         curl -X POST -H 'Content-type: application/json' \
+         --data "{\"text\":\"$MESSAGE\"}" \
+         ${{ secrets.SLACK_WEBHOOK_URL }}
    
           
     
@@ -154,10 +169,21 @@ jobs:
 
       - name: Download Task Definition
         run: aws s3 cp s3://task-definition-store-bucket/task_def.json . 
+        
+      - name: Notify Slack
+        if: always()
+        run: |
+         STATUS="${{ job.status }}"
+    
+         if [ "$STATUS" == "success" ]; then
+            MESSAGE="✅ Task Definition Download Completed"
+         else
+            MESSAGE="❌ Task Definition Download Failed"
+         fi
 
-
-
-
+         curl -X POST -H 'Content-type: application/json' \
+         --data "{\"text\":\"$MESSAGE\"}" \
+         ${{ secrets.SLACK_WEBHOOK_URL }}
 
 
       - name: Render new ECS task definition
@@ -171,10 +197,25 @@ jobs:
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ steps.task_def.outputs.task-definition }}   # ✅ IMPORTANT
+          task-definition: ${{ steps.task_def.outputs.task-definition }}   
           service: much_todo_demo-service
           cluster: much_todo_demo-cluster
           wait-for-service-stability: true
+
+      - name: Notify Slack
+        if: always()
+        run: |
+         STATUS="${{ job.status }}"
+    
+         if [ "$STATUS" == "success" ]; then
+            MESSAGE="✅ Depolyment Completed"
+         else
+            MESSAGE="❌ Deployment Failed"
+         fi
+
+         curl -X POST -H 'Content-type: application/json' \
+         --data "{\"text\":\"$MESSAGE\"}" \
+         ${{ secrets.SLACK_WEBHOOK_URL }}
 
     
     
