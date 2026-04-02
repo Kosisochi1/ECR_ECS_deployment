@@ -79,6 +79,20 @@ jobs:
       run: |
         go install golang.org/x/vuln/cmd/govulncheck@latest
         govulncheck./... || echo "Vulnerability detected"
+    - name: Notify Slack
+      if: always()
+      run: |
+         STATUS="${{ job.status }}"
+    
+         if [ "$STATUS" == "success" ]; then
+            MESSAGE="✅ Build succeeded"
+         else
+            MESSAGE="❌ Build failed"
+         fi
+
+         curl -X POST -H 'Content-type: application/json' \
+         --data "{\"text\":\"$MESSAGE\"}" \
+         ${{ secrets.SLACK_WEBHOOK_URL }}
 
   build:
     name: Build Image
@@ -143,9 +157,7 @@ jobs:
 
 
 
-      - name: Debug JSON
-        run: |
-         cat task_def.json
+
 
 
       - name: Render new ECS task definition
@@ -155,9 +167,6 @@ jobs:
            task-definition: task_def.json
            container-name: much_todo_demo
            image: ${{ secrets.ECR_REPO }}:latest
-      - name: Debug rendered task definition
-        run: |
-          cat ${{ steps.task_def.outputs.task-definition }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
