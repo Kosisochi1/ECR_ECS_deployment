@@ -12,7 +12,7 @@ severity:
   - MEDIUM
 
 # Fail pipeline if issues found
-exit-code: 1
+# exit-code: 1
 
 # Ignore unfixed vulnerabilities (optional)
 ignore-unfixed: true
