@@ -1,9 +1,9 @@
 # What to scan
 scan:
-  security-checks:
+  scanners:
     - vuln        # vulnerabilities (dependencies)
-    - secret      # hardcoded secrets
-    - config      # misconfigurations (Terraform, Docker, K8s)
+     # hardcoded secrets
+    - misconfig      # misconfigurations (Terraform, Docker, K8s)
 
 # Severity levels to report
 severity:
