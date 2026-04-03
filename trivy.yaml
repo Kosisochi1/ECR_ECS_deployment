@@ -1,0 +1,32 @@
+# What to scan
+scan:
+  security-checks:
+    - vuln        # vulnerabilities (dependencies)
+    - secret      # hardcoded secrets
+    - config      # misconfigurations (Terraform, Docker, K8s)
+
+# Severity levels to report
+severity:
+  - CRITICAL
+  - HIGH
+  - MEDIUM
+
+# Fail pipeline if issues found
+exit-code: 1
+
+# Ignore unfixed vulnerabilities (optional)
+ignore-unfixed: true
+
+# Output format (useful for GitHub Security tab)
+format: sarif
+output: trivy-results.sarif
+
+
+# Skip specific files
+skip-files:
+  - package-lock.js
+  - .gitignore
+  - .gitattributes
+misconfiguration:
+  dockerfile:
+    enabled: true
