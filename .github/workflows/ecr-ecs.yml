@@ -139,7 +139,7 @@ jobs:
           docker tag demo-app:latest ${{secrets.ECR_REPO}}:1.0.0
 
       - name: Push Image 
-        run:  docker push ${{ secrets.ECR_REPO }}:1.0.0.
+        run:  docker push ${{ secrets.ECR_REPO }}:1.0.0
         
       - name: Notify Slack
         if: always()
