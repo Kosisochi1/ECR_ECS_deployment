@@ -25,10 +25,22 @@ jobs:
       uses: gitleaks/gitleaks-action@v2
       continue-on-error: true
 
-    - name: Upload SARIF to Security tab
-      uses: github/codeql-action/upload-sarif@v4
+    - name: Trivy vulnerability scanner in fs mode
+      uses: aquasecurity/trivy-action@master
       with:
-       sarif_file: results.sarif
+        scan-type: 'fs'
+        scan-ref: '.'
+        trivy-config: trivy.yaml
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: go
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -46,12 +58,14 @@ jobs:
       env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-    - name: Run Trivy vulnerability scanner in fs mode
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        trivy-config: trivy.yaml
+    
+    - name: Vulnerabity Scan
+      working-directory: application-code 
+      run: |
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+        govulncheck ./... || echo "Vulnerability detected"
+
+
 
     - name:    Unit Test
       working-directory: application-code
@@ -63,11 +77,11 @@ jobs:
       run: |
         INTEGRATION=true go test -v --tags=integration ./...
         
-    - name: Vulnerabity Scan
-      working-directory: application-code 
-      run: |
-        go install golang.org/x/vuln/cmd/govulncheck@latest
-        govulncheck./... || echo "Vulnerability detected"
+    - name: Upload SARIF to Security tab
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+       sarif_file: results.sarif
+    
     - name: Notify Slack
       if: always()
       run: |
@@ -110,14 +124,22 @@ jobs:
 
       - name: Build Docker Image
         run: docker build -t demo-app .
+
+      - name: Scan Docker Image
+        uses: aquasecurity/trivy-action@master
+        with:
+         image-ref: demo-app:latest
+         format: 'sarif'
+         output: 'trivy-image-results.sarif'
+         severity: 'CRITICAL,HIGH'
         
       - name: Tag Image
         run: |
         
-          docker tag demo-app:latest ${{secrets.ECR_REPO}}:latest
+          docker tag demo-app:latest ${{secrets.ECR_REPO}}:v.0.0.1
 
       - name: Push Image 
-        run:  docker push ${{ secrets.ECR_REPO }}:latest
+        run:  docker push ${{ secrets.ECR_REPO }}:v.0.0.1
         
       - name: Notify Slack
         if: always()
@@ -190,6 +212,41 @@ jobs:
           service: much_todo_demo-service
           cluster: much_todo_demo-cluster
           wait-for-service-stability: true
+
+
+      - name: Get ALB DNS
+        id: alb
+        run: |
+          ALB_DNS=$(aws elbv2 describe-load-balancers \
+            --query "LoadBalancers[?contains(LoadBalancerName, 'much-to-do')].DNSName" \
+            --output text)
+
+          echo "ALB_DNS=$ALB_DNS"
+          echo "ALB_URL=http://$ALB_DNS" >> $GITHUB_ENV
+
+      - name: Wait for ALB Health
+        run: |
+          for i in {1..20}; do
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}" $ALB_URL)
+
+            if [ "$STATUS" == "200" ] || [ "$STATUS" == "301" ] || [ "$STATUS" == "302" ]; then
+              echo "Application is healthy"
+              exit 0
+            fi
+
+            echo "Waiting for application..."
+            sleep 30
+          done
+
+          echo "Application failed health check"
+          exit 1
+
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: ${{ env.ALB_URL }}
+          cmd_options: "--autooff"
+          fail_action: true
 
       - name: Notify Slack
         if: always()
