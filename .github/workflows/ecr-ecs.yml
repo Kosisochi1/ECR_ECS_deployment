@@ -1,7 +1,7 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: Go
+name: Deploy GO APi
 
 on:
   push:
@@ -26,22 +26,30 @@ jobs:
       uses: gitleaks/gitleaks-action@v2
       continue-on-error: true
 
+
     - name: Trivy vulnerability scanner in fs mode
       uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
         scan-ref: '.'
         trivy-config: trivy.yaml
+
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: go
 
-    - name: Autobuild
+
+    - name: CodeQl Autobuild
       uses: github/codeql-action/autobuild@v3
+
+
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
+
+
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -49,6 +57,7 @@ jobs:
         go-version: "1.22"
         cache: true
         cache-dependency-path: application-code/go.sum
+
 
     - name: Download Dependency
       working-directory: application-code
@@ -73,15 +82,18 @@ jobs:
       run: |
         go test  ./... -v || echo "review manually"
 
+
     - name: Integration Test
       working-directory: application-code
       run: |
         INTEGRATION=true go test -v --tags=integration ./...
+
         
     - name: Upload SARIF to Security tab
       uses: github/codeql-action/upload-sarif@v4
       with:
        sarif_file: results.sarif
+
     
     - name: Notify Slack
       if: always()
@@ -98,8 +110,10 @@ jobs:
          --data "{\"text\":\"$MESSAGE\"}" \
          ${{ secrets.SLACK_WEBHOOK_URL }}
 
+
+
   build:
-    name: Build Image
+    name: Build and Push Image 
     runs-on: ubuntu-latest
     needs: pre-build
 
@@ -120,11 +134,16 @@ jobs:
           aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
           aws-region: us-east-1
 
+
+
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+
       - name: Build Docker Image
         run: docker build -t demo-app .
+
+
 
       - name: Scan Docker Image
         uses: aquasecurity/trivy-action@master
@@ -134,13 +153,19 @@ jobs:
          output: 'trivy-image-results.sarif'
          severity: 'CRITICAL,HIGH'
         
+
+
       - name: Tag Image
         run: |
         
           docker tag demo-app:latest ${{secrets.ECR_REPO}}:1.0.0
 
+
+
       - name: Push Image 
         run:  docker push ${{ secrets.ECR_REPO }}:1.0.0
+
+
         
       - name: Notify Slack
         if: always()
@@ -161,7 +186,7 @@ jobs:
     
      
   deploy:
-    name: Deploy to ECS
+    name: Deploy API to ECS
     runs-on: ubuntu-latest
     needs: build
 
@@ -181,6 +206,7 @@ jobs:
 
       - name: Download Task Definition
         run: aws s3 cp s3://much-todo-demo-326a0b/task_def.json . 
+
         
       - name: Notify Slack
         if: always()
@@ -198,6 +224,7 @@ jobs:
          ${{ secrets.SLACK_WEBHOOK_URL }}
 
 
+
       - name: Render new ECS task definition
         id: task_def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -206,6 +233,7 @@ jobs:
            container-name: much_to_do
            image: ${{ secrets.ECR_REPO }}:1.0.0
 
+
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
@@ -213,6 +241,7 @@ jobs:
           service: much_to_do-service
           cluster: much_to_do-cluster
           wait-for-service-stability: true
+
 
 
       - name: Get ALB DNS
@@ -224,6 +253,7 @@ jobs:
 
           echo "ALB_DNS=$ALB_DNS"
           echo "ALB_URL=http://$ALB_DNS" >> $GITHUB_ENV
+
 
       - name: Wait for ALB Health
         run: |
@@ -242,6 +272,8 @@ jobs:
           echo "Application failed health check"
           exit 1
 
+
+
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.14.0
         with:
@@ -249,6 +281,8 @@ jobs:
           cmd_options: "--autooff"
           fail_action: false
           artifact_name: zapscan
+
+
 
       - name: Notify Slack
         if: always()
