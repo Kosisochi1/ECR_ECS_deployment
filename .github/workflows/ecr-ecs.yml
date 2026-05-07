@@ -202,15 +202,15 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
            task-definition: task_def.json
-           container-name: much_todo_demo
-           image: ${{ secrets.ECR_REPO }}:latest
+           container-name: much_to_do
+           image: ${{ secrets.ECR_REPO }}:1.0.0
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task_def.outputs.task-definition }}   
-          service: much_todo_demo-service
-          cluster: much_todo_demo-cluster
+          service: much_to_do-service
+          cluster: much_to_do-cluster
           wait-for-service-stability: true
 
 
