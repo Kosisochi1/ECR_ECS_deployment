@@ -248,7 +248,7 @@ jobs:
           target: ${{ env.ALB_URL }}
           cmd_options: "--autooff"
           fail_action: false
-          artifact_name: zap-scan
+          artifact_name: zapscan
 
       - name: Notify Slack
         if: always()
